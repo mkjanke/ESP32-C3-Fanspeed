@@ -1,10 +1,10 @@
 # ESP32-C3-Fanspeed
 
-ESP32-C3 Fan speed controler
+ESP32-C3 Fan speed controller
 
 Reads two DHT11 temperature probes and sets computer fan speed using PWM motor controller, based on temperature differential
 
-Publishes temperature and fan data to BlueTooth LE and HTML page.
+Publishes temperature and fan data to Bluetooth LE and HTML page.
 
 Allows limited control of fan parameters via BLE.
 
