@@ -44,11 +44,12 @@ DHT library must be modified to include mutex during DHT sensor read, or read er
 
 Note: this is a crude - better ways exist.
 
-Uses the special espressif platform compiled by tasmota.
-
 ## To get started:
     Rename setup-dist.h to setup.h 
     Edit WiFi, Pin and Fan parameters in setings.h
+
+
+Uses the special espressif platform compiled by tasmota.
 
 ## Platform.ini
 
