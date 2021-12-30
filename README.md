@@ -6,6 +6,8 @@ Reads two DHT11 temperature probes and sets computer fan speed using PWM motor c
 
 Publishes temperature and fan data to BlueTooth LE and HTML page.
 
+Allows limited control of fan parameters via BLE
+
 Inspiration and sample code from Everlanders:
 
       https://youtu.be/aS3BiYaEfiw
