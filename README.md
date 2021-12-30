@@ -6,7 +6,7 @@ Reads two DHT11 temperature probes and sets computer fan speed using PWM motor c
 
 Publishes temperature and fan data to BlueTooth LE and HTML page.
 
-Allows limited control of fan parameters via BLE
+Allows limited control of fan parameters via BLE.
 
 Inspiration and sample code from Everlanders:
 
@@ -17,7 +17,7 @@ Inspiration and sample code from Everlanders:
     Arduino OTA
     Adafruit DHT Sensor Library
 
-DHT library must be modified to include mutex during DHT sensor read, or read errors will occur. In DHT.h, modify INterruptLock class:
+DHT library must be modified to include mutex during DHT sensor read, or read errors will occur. In DHT.h, modify InterruptLock class:
 
     class InterruptLock {
     #if defined(ESP32)
