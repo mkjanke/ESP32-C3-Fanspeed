@@ -5,21 +5,29 @@
 #include <Adafruit_Sensor.h>
 #include <DHT.h>
 
-// DHT11 temp sensor config
-#define DHTPIN_A  18                // Digital pin connected to the DHT sensor
-#define DHTPIN_B  19                // Digital pin connected to the DHT sensor
+// DHT Temperature Probe class
+// Simple wrapper for Adafruit DHT class
 
-#define DHTTYPE DHT11            // Sensor type DHT 11
-#define DHT_TEMP_F true          // Set to True for Fahrenheit, false for Celsius
+class myDHT : public DHT {
+  
+  public:
+    myDHT(uint8_t pin, uint8_t type ) : DHT( pin, type ){}
+    
+    float temperature = 0.0;
+    int readCount = 0; 
+    int errorCount = 0;
 
-// DHT Temperature Probe setup
-DHT dhtA(DHTPIN_A, DHTTYPE);
-DHT dhtB(DHTPIN_B, DHTTYPE);
-
-// Global vars for current temperature & humidity, updated by timers
-float dhtTempA = 0.0;
-float dhtTempB = 0.0;
-int dhtReadCount = 0;
-int dhtReadErrorCount = 0;
+    float readFahrenheit(){
+      float tempF = DHT::readTemperature(true);
+      if (!isnan(tempF)) {
+        temperature = tempF;
+        readCount++;
+        return true;
+      } else {
+        errorCount++;
+        return false;
+      }
+    }
+};
 
 #endif //DHT11_H

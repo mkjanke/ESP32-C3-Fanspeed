@@ -8,8 +8,6 @@
 bool deviceConnected = false;
 
 extern char uptimeBuffer[20];
-extern float dhtTempA;
-extern float dhtTempB;
 
 extern PWMFan fan;
 
@@ -55,18 +53,21 @@ class intCallbacks: public BLECharacteristicCallbacks {
     }
 };
 
-void bleInterface::update(){    
-    temperatureB_BLEC->setValue((uint8_t*)&dhtTempB, sizeof(float));
-    temperatureA_BLEC->setValue((uint8_t*)&dhtTempA, sizeof(float));
-    fanspeedBLEC->setValue((uint8_t*)&fan.fanSpeed, sizeof(uint8_t));
-    fanStartTempBLEC->setValue((uint8_t*)&fan.startTemp, sizeof(uint8_t));
-    fanMaxTempBLEC->setValue((uint8_t*)&fan.maxTemp, sizeof(uint8_t));
+void bleInterface::updateFan(){
+    fanspeedBLEC->setValue(fan.fanSpeed);
+    fanStartTempBLEC->setValue(fan.startTemp);
+    fanMaxTempBLEC->setValue(fan.maxTemp);
     fanLowSpeedBLEC->setValue(fan.lowSpeed);
     fanOverrideBLEC->setValue(fan.override);
     fanRelayBLEC->setValue(fan.relayOut);
+}
+void bleInterface::updateTemperature(float dhtTempA, float dhtTempB){    
+    temperatureB_BLEC->setValue(dhtTempB);
+    temperatureA_BLEC->setValue(dhtTempA);
+}
+void bleInterface::updateUptime(){
     uptimeBLEC->setValue(uptimeBuffer);
 }
-
 void bleInterface::stopAdvertising(){
     pAdvertising->stop();
     pAdvertising->setScanResponse(false);

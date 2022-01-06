@@ -16,7 +16,7 @@ class PWMFan {
     uint8_t lowSpeed = FAN_LOW_SPEED;         // Low limit for fan speed (in %)
     bool override = false;                    // Force fan to 100%  
     bool relayOut = 1;                        // Set relay to force controller bypass
-
+ 
     void begin(){
       // Create PWM channel, Attach the LED PWM Channel to the GPIO Pin
       ledcSetup(PWM_CHANNEL, PWM_FREQUENCY, PWM_RESOLUTION);

@@ -4,7 +4,9 @@
 class bleInterface {
   public:
     void begin();
-    void update();
+    void updateFan();
+    void updateUptime();
+    void updateTemperature(float, float);
     void stopAdvertising();
 };
 

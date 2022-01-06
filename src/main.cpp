@@ -19,6 +19,10 @@ char uptimeBuffer[20];                  //scratch space for storing formatted 'u
 PWMFan fan;
 bleInterface bleIF;
 
+myDHT dhtA(DHTPIN_A, DHTTYPE);
+myDHT dhtB(DHTPIN_B, DHTTYPE);
+
+
 void dumpESPStatus();                   // Dump ESP status to terminal window
 void dumpSensorStatus();                // Dump Sensor status to terminal window
 void uptime();
@@ -30,7 +34,7 @@ WiFiServer server(80);
 
 void setup(){
   Serial.begin(115200);
-  Serial.println("Woke");
+  Serial.println("This device is Woke!");
 
   // Setup status LED and Relay
   pinMode(LED_OUT,OUTPUT);
@@ -57,7 +61,8 @@ void setup(){
 
   //Initialize BlueTooth
   bleIF.begin();
-  bleIF.update();
+  bleIF.updateUptime();
+  bleIF.updateFan();
 
   dumpESPStatus();
 
@@ -91,6 +96,7 @@ void setup(){
 void loop(){
   static int loopcnt = 0;
   ArduinoOTA.handle();
+
   WiFiClient client = server.available();   // Listen for incoming clients
   if (client) {
       digitalWrite(LED_OUT,HIGH);
@@ -113,7 +119,6 @@ void loop(){
   }
     
 }
-
 
 void uptime(){
   // Constants for uptime calculations
@@ -148,31 +153,19 @@ void readDHT(void * parameter){
     vTaskDelay(HEARTBEAT * 2 / portTICK_PERIOD_MS);
     digitalWrite(LED_OUT, HIGH);
 
-    float tempA = dhtA.readTemperature(DHT_TEMP_F);
-
-    if (!isnan(tempA)){
-      dhtTempA = tempA;
+    if ( dhtA.readFahrenheit() && dhtB.readFahrenheit()){
+      fan.setFanSpeed((int)dhtA.temperature, (int)dhtB.temperature);
+      bleIF.updateTemperature(dhtA.temperature, dhtB.temperature);
+      bleIF.updateFan();
     }
     digitalWrite(LED_OUT, LOW);
 
-    vTaskDelay(HEARTBEAT * 2 / portTICK_PERIOD_MS);
+    vTaskDelay(HEARTBEAT / portTICK_PERIOD_MS);
     digitalWrite(LED_OUT, HIGH);
-
-    float tempB = dhtB.readTemperature(DHT_TEMP_F);  
-    if (!isnan(tempB)) {
-      dhtTempB = tempB;
-    }
-    
-    if ( isnan(tempA) || isnan(tempB)) {
-      dhtReadErrorCount++;
-    } else {
-      dhtReadCount++;
-      fan.setFanSpeed((int)dhtTempA, (int)dhtTempB);
-    }
 
     // Update BlueTooth characteristics
     uptime();
-    bleIF.update();
+    bleIF.updateUptime();
     digitalWrite(LED_OUT, LOW);
   }
 }
@@ -181,11 +174,13 @@ void readDHT(void * parameter){
 void dumpSensorStatus()
 {
   Serial.println(uptimeBuffer);
-  Serial.printf("TempA: %.1f\n", dhtTempA);
-  Serial.printf("TempB: %.1f\n", dhtTempB);
+  Serial.printf("TempA: %.1f\n", dhtA.temperature);
+  Serial.printf("Read Count: %d\n", dhtA.readCount);
+  Serial.printf("Error Count: %d\n", dhtA.errorCount);
+  Serial.printf("TempB: %.1f\n", dhtB.temperature);
+  Serial.printf("Read Count: %d\n", dhtB.readCount);
+  Serial.printf("Error Count: %d\n", dhtB.errorCount);
   Serial.printf("Fan Speed: %d\n", fan.fanSpeed);
-  Serial.printf("Read Count: %d\n", dhtReadCount);
-  Serial.printf("Error Count: %d\n", dhtReadErrorCount);
   Serial.println();
 }
 
@@ -218,9 +213,19 @@ void outputWebPage(WiFiClient client){
     client.println("<br><br>");
     client.println(uptimeBuffer);
     client.print("<br>Temp A: ");
-    client.print(dhtTempA);
-    client.print("<br>Temp B:: ");
-    client.println(dhtTempB);
+    client.print(dhtA.temperature);
+    client.print("<br>Error Count: ");
+    client.println(dhtA.errorCount);
+    client.print("<br>Read Count: ");
+    client.println(dhtA.readCount);
+    client.println("<br>");
+    client.print("<br>Temp B: ");
+    client.println(dhtB.temperature);
+    client.print("<br>Error Count: ");
+    client.println(dhtB.errorCount);
+    client.print("<br>Read Count: ");
+    client.println(dhtB.readCount);
+    client.println("<br>");
     client.print("<br>Duty Cycle: ");
     client.println(fan.dutyCycle);
     client.print("<br>Fan Speed: ");
@@ -235,10 +240,6 @@ void outputWebPage(WiFiClient client){
     client.println(fan.override);
     client.print("<br>Relay: ");
     client.println(fan.relayOut);
-    client.print("<br>Error Count: ");
-    client.println(dhtReadErrorCount);
-    client.print("<br>Read Count: ");
-    client.println(dhtReadCount);
     client.println("");
     client.println("<br><br>");
     client.println("</font></center></body></html>");
