@@ -7,13 +7,10 @@
 #include <WiFi.h>
 #include <Arduino.h>
 #include <ArduinoOTA.h>
-#include <stdio.h>
 
-// #include "sdkconfig.h"
 #include "freertos/FreeRTOS.h"
 #include "freertos/task.h"
 #include "esp_system.h"
-#include "esp_spi_flash.h"
 
 const char* ssid = WIFI_SSID;
 const char* password =  WIFI_PASSWORD;
@@ -184,16 +181,11 @@ void readDHT(void * parameter){
 void dumpSensorStatus()
 {
   Serial.println(uptimeBuffer);
-  Serial.print("TempA: ");
-  Serial.print(dhtTempA);
-  Serial.print("\tTempB: ");
-  Serial.println(dhtTempB);
-  Serial.print("Fan Speed: ");
-  Serial.println(fan.fanSpeed);
-  Serial.print("Read Count: ");
-  Serial.println(dhtReadCount);
-  Serial.print("Error Count: ");
-  Serial.println(dhtReadErrorCount);
+  Serial.printf("TempA: %.1f\n", dhtTempA);
+  Serial.printf("TempB: %.1f\n", dhtTempB);
+  Serial.printf("Fan Speed: %d\n", fan.fanSpeed);
+  Serial.printf("Read Count: %d\n", dhtReadCount);
+  Serial.printf("Error Count: %d\n", dhtReadErrorCount);
   Serial.println();
 }
 
