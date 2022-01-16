@@ -1,8 +1,8 @@
 #ifndef SETTINGS_H
 #define SETTINGS_H
 
-#define WIFI_SSID "SSID"
-#define WIFI_PASSWORD "PASSWORD"
+#define WIFI_SSID "..."
+#define WIFI_PASSWORD "..."
 
 #define HEARTBEAT 10000L         // Sensor and WiFi loop delay (ms)
 #define DEVICE_NAME "ESP-Fanspeed"
@@ -29,6 +29,12 @@
 // Fan control pins
 #define RELAY_OUT              10
 #define LED_OUT                 7
+
+// Sensor type, pins and config
+#define SENSORPIN_A  18
+#define SENSORPIN_B  19
+#define SENSORTYPE DHT11            // Sensor type DHT 11
+#define TEMP_FAHRENHEIT true          // Set to True for Fahrenheit, false for Celsius
 
 // BlueTooth UUID's
 

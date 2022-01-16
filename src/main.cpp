@@ -2,7 +2,7 @@
 #include "settings.h"
 #include "fan.h"
 #include "bleInterface.h"
-#include "dht11.h"
+#include "sensor.h"
 
 #include <WiFi.h>
 #include <Arduino.h>
