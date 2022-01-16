@@ -19,8 +19,8 @@ char uptimeBuffer[20];                  //scratch space for storing formatted 'u
 PWMFan fan;
 bleInterface bleIF;
 
-myDHT dhtA(DHTPIN_A, DHTTYPE);
-myDHT dhtB(DHTPIN_B, DHTTYPE);
+tempSensor sensorA(SENSORPIN_A, SENSORTYPE);
+tempSensor sensorB(SENSORPIN_B, SENSORTYPE);
 
 
 void dumpESPStatus();                   // Dump ESP status to terminal window
@@ -52,8 +52,8 @@ void setup(){
 
   // Initialize fan and temperature sensors  
   fan.begin();
-  dhtA.begin();
-  dhtB.begin();
+  sensorA.begin();
+  sensorB.begin();
 
   digitalWrite(RELAY_OUT,HIGH);
 
@@ -153,9 +153,9 @@ void readDHT(void * parameter){
     vTaskDelay(HEARTBEAT * 2 / portTICK_PERIOD_MS);
     digitalWrite(LED_OUT, HIGH);
 
-    if ( dhtA.readFahrenheit() && dhtB.readFahrenheit()){
-      fan.setFanSpeed((int)dhtA.temperature, (int)dhtB.temperature);
-      bleIF.updateTemperature(dhtA.temperature, dhtB.temperature);
+    if ( sensorA.readFahrenheit() && sensorB.readFahrenheit()){
+      fan.setFanSpeed((int)sensorA.temperature, (int)sensorB.temperature);
+      bleIF.updateTemperature(sensorA.temperature, sensorB.temperature);
       bleIF.updateFan();
     }
     digitalWrite(LED_OUT, LOW);
@@ -174,12 +174,12 @@ void readDHT(void * parameter){
 void dumpSensorStatus()
 {
   Serial.println(uptimeBuffer);
-  Serial.printf("TempA: %.1f\n", dhtA.temperature);
-  Serial.printf("Read Count: %d\n", dhtA.readCount);
-  Serial.printf("Error Count: %d\n", dhtA.errorCount);
-  Serial.printf("TempB: %.1f\n", dhtB.temperature);
-  Serial.printf("Read Count: %d\n", dhtB.readCount);
-  Serial.printf("Error Count: %d\n", dhtB.errorCount);
+  Serial.printf("TempA: %.1f\n", sensorA.temperature);
+  Serial.printf("Read Count: %d\n", sensorA.readCount);
+  Serial.printf("Error Count: %d\n", sensorA.errorCount);
+  Serial.printf("TempB: %.1f\n", sensorB.temperature);
+  Serial.printf("Read Count: %d\n", sensorB.readCount);
+  Serial.printf("Error Count: %d\n", sensorB.errorCount);
   Serial.printf("Fan Speed: %d\n", fan.fanSpeed);
   Serial.println();
 }
@@ -213,18 +213,18 @@ void outputWebPage(WiFiClient client){
     client.println("<br><br>");
     client.println(uptimeBuffer);
     client.print("<br>Temp A: ");
-    client.print(dhtA.temperature);
+    client.print(sensorA.temperature);
     client.print("<br>Error Count: ");
-    client.println(dhtA.errorCount);
+    client.println(sensorA.errorCount);
     client.print("<br>Read Count: ");
-    client.println(dhtA.readCount);
+    client.println(sensorA.readCount);
     client.println("<br>");
     client.print("<br>Temp B: ");
-    client.println(dhtB.temperature);
+    client.println(sensorB.temperature);
     client.print("<br>Error Count: ");
-    client.println(dhtB.errorCount);
+    client.println(sensorB.errorCount);
     client.print("<br>Read Count: ");
-    client.println(dhtB.readCount);
+    client.println(sensorB.readCount);
     client.println("<br>");
     client.print("<br>Duty Cycle: ");
     client.println(fan.dutyCycle);
