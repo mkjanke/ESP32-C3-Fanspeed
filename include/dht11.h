@@ -20,7 +20,7 @@ class myDHT : public DHT {
     float readFahrenheit(){
       float tempF = DHT::readTemperature(true);
       if (!isnan(tempF)) {
-        temperature = tempF;
+        temperature = (float)((int)(tempF * 10 + .5)/10);
         readCount++;
         return true;
       } else {
