@@ -30,11 +30,15 @@ class tempSensor : public DHT {
     }
 };
 
+// Class to encapsulate a sensor pair. 
+// Sensor A is intended to be the higher temperature sensor, 
+// so that the fans will spin in an attempt to lower that temp.
+// Sensor B is the base (ambient) temperature sensor
+
 class sensorPair {
-  uint8_t _pinA;
-  uint8_t _pinB;
-  uint8_t _type;
+
   protected:
+    // Create two tempSensor (DHT) objects, A and B.
     tempSensor sensorA;
     tempSensor sensorB;
 
@@ -46,8 +50,6 @@ class sensorPair {
 
     sensorPair(uint8_t pinA, uint8_t pinB, uint8_t type ) : 
                   sensorA(pinA, type), sensorB(pinB, type) {
-      _pinA = pinA;
-      _pinB = pinB;
     }
 
     void begin(){
@@ -57,13 +59,13 @@ class sensorPair {
 
     bool readFahrenheit(){
       if (sensorA.readFahrenheit())
-        temperatureA=sensorA.temperature;
+        temperatureA = sensorA.temperature;
       else {
         errorCount++;
         return false;
       }      
       if (sensorB.readFahrenheit())
-        temperatureB=sensorB.temperature;
+        temperatureB = sensorB.temperature;
       else {
         errorCount++;
         return false;
