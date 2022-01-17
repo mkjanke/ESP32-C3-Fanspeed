@@ -1,8 +1,10 @@
 #ifndef SETTINGS_H
 #define SETTINGS_H
 
-#define WIFI_SSID "..."
-#define WIFI_PASSWORD "..."
+#include <stdint.h>
+
+#define WIFI_SSID "---"
+#define WIFI_PASSWORD "---"
 
 #define HEARTBEAT 10000L         // Sensor and WiFi loop delay (ms)
 #define DEVICE_NAME "ESP-Fanspeed"
@@ -31,9 +33,24 @@
 #define LED_OUT                 7
 
 // Sensor type, pins and config
-#define SENSORPIN_A  18
-#define SENSORPIN_B  19
-#define SENSORTYPE DHT11            // Sensor type DHT 11
+// Uncomment either DHT section or DS18B20 Section, not both
+
+// ---- DHT section
+// #define SENSORPIN_A  18
+// #define SENSORPIN_B  19
+
+// #define SENSORTYPE DHT11            // Sensor type DHT 11
+// #define DHT11SENSOR
+// ---- End DHT Section
+
+// ---- DS18B20 Setion
+static const uint8_t DS18B20{18};      /** DS18B20 type sensor */
+#define SENSORTYPE DS18B20
+#define DS18B20SENSOR
+#define SENSORPIN_A  5
+#define SENSORPIN_B  SENSORPIN_A      // Dummy def for compatibility with DHT version
+// ---- End DS Section
+
 #define TEMP_FAHRENHEIT true          // Set to True for Fahrenheit, false for Celsius
 
 // BlueTooth UUID's
