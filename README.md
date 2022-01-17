@@ -2,7 +2,7 @@
 
 ESP32-C3 Fan speed controller
 
-Reads two DHT11 temperature probes and sets computer fan speed using PWM motor controller, based on temperature differential
+Reads two temperature probes (DHT11 or DS18B20) and sets computer fan speed using PWM motor controller, based on temperature differential
 
 Publishes temperature and fan data to Bluetooth LE and HTML page.
 
@@ -15,9 +15,10 @@ Inspiration and sample code from Everlanders:
 
 ## Libraries:
     Arduino OTA
-    Adafruit DHT Sensor Library
+    Adafruit DHT Sensor Library (DHT11 version)
+    OneWireNG (DS18B20 version)
 
-DHT library must be modified to include mutex during DHT sensor read, or read errors will occur. In DHT.h, modify InterruptLock class:
+Adafruit DHT library must be modified to include mutex during DHT sensor read, or read errors will occur. In DHT.h, modify InterruptLock class:
 
     class InterruptLock {
     #if defined(ESP32)
@@ -48,12 +49,12 @@ Note: this is a crude - better ways exist.
 
 ## To get started:
     Rename setup-dist.h to setup.h 
-    Edit WiFi, Pin and Fan parameters in setings.h
+    Edit WiFi, Sensor, Pin and Fan parameters in settings.h
 
 
 Uses the special espressif platform compiled by tasmota.
 
-## Platform.ini
+## Platform.ini (DHT Version)
 
     [env:esp32c3-tasmota]
     platform  = https://github.com/tasmota/platform-espressif32/releases/download/v2.0.2/platform-tasmota-espressif32-2.0.2.zip
@@ -62,5 +63,16 @@ Uses the special espressif platform compiled by tasmota.
     monitor_speed = 115200
     lib_deps = 
 	    adafruit/DHT sensor library@^1.4.3
+	    h2zero/NimBLE-Arduino@^1.3.1
+
+## Platform.ini (DS18B20 Version)
+
+    [env:esp32c3-tasmota]
+    platform  = https://github.com/tasmota/platform-espressif32/releases/download/v2.0.2/platform-tasmota-espressif32-2.0.2.zip
+    framework = arduino
+    board = esp32-c3-devkitm-1
+    monitor_speed = 115200
+    lib_deps = 
+	    pstolarz/OneWireNg@^0.10.1
 	    h2zero/NimBLE-Arduino@^1.3.1
 
