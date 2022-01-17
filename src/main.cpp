@@ -19,15 +19,15 @@ char uptimeBuffer[20];                  //scratch space for storing formatted 'u
 PWMFan fan;
 bleInterface bleIF;
 
-tempSensor sensorA(SENSORPIN_A, SENSORTYPE);
-tempSensor sensorB(SENSORPIN_B, SENSORTYPE);
-
+//tempSensor sensorA(SENSORPIN_A, SENSORTYPE);
+//tempSensor sensorB(SENSORPIN_B, SENSORTYPE);
+sensorPair sensors(SENSORPIN_A, SENSORPIN_B, SENSORTYPE);
 
 void dumpESPStatus();                   // Dump ESP status to terminal window
 void dumpSensorStatus();                // Dump Sensor status to terminal window
 void uptime();
 void checkWiFi(void * );
-void readDHT(void * );
+void readSensors(void * );
 void outputWebPage( WiFiClient );
 
 WiFiServer server(80);
@@ -52,8 +52,7 @@ void setup(){
 
   // Initialize fan and temperature sensors  
   fan.begin();
-  sensorA.begin();
-  sensorB.begin();
+  sensors.begin();
 
   digitalWrite(RELAY_OUT,HIGH);
 
@@ -77,8 +76,8 @@ void setup(){
   );
 
     xTaskCreate(
-      readDHT,          // Function that should be called
-      "Read DHT",       // Name of the task (for debugging)
+      readSensors,          // Function that should be called
+      "Read Sensors",       // Name of the task (for debugging)
       2000,             // Stack size (bytes)
       NULL,             // Parameter to pass
       6,                // Task priority
@@ -144,20 +143,20 @@ void checkWiFi(void * parameter){
   }
 }
 
-// Read both DHT11's
+// Read both temp sensors
 // Update BlueTooth characteristics
 // Set fan speed
-void readDHT(void * parameter){
+void readSensors(void * parameter){
   for(;;){ // infinite loop
 
     vTaskDelay(HEARTBEAT * 2 / portTICK_PERIOD_MS);
     digitalWrite(LED_OUT, HIGH);
-
-    if ( sensorA.readFahrenheit() && sensorB.readFahrenheit()){
-      fan.setFanSpeed((int)sensorA.temperature, (int)sensorB.temperature);
-      bleIF.updateTemperature(sensorA.temperature, sensorB.temperature);
-      bleIF.updateFan();
+    if ( sensors.readFahrenheit()) {
+       fan.setFanSpeed((int)sensors.temperatureA, (int)sensors.temperatureB);
+       bleIF.updateTemperature(sensors.temperatureB, sensors.temperatureB);
+       bleIF.updateFan();
     }
+
     digitalWrite(LED_OUT, LOW);
 
     vTaskDelay(HEARTBEAT / portTICK_PERIOD_MS);
@@ -173,14 +172,11 @@ void readDHT(void * parameter){
 // Output sensor status to terminal
 void dumpSensorStatus()
 {
-  Serial.println(uptimeBuffer);
-  Serial.printf("TempA: %.1f\n", sensorA.temperature);
-  Serial.printf("Read Count: %d\n", sensorA.readCount);
-  Serial.printf("Error Count: %d\n", sensorA.errorCount);
-  Serial.printf("TempB: %.1f\n", sensorB.temperature);
-  Serial.printf("Read Count: %d\n", sensorB.readCount);
-  Serial.printf("Error Count: %d\n", sensorB.errorCount);
+  Serial.printf("TempA: %.1f\n", sensors.temperatureA);
+  Serial.printf("TempB: %.1f\n", sensors.temperatureB);
   Serial.printf("Fan Speed: %d\n", fan.fanSpeed);
+  Serial.printf("Read Count: %d\n", sensors.readCount);
+  Serial.printf("Error Count: %d\n", sensors.errorCount);
   Serial.println();
 }
 
@@ -213,18 +209,14 @@ void outputWebPage(WiFiClient client){
     client.println("<br><br>");
     client.println(uptimeBuffer);
     client.print("<br>Temp A: ");
-    client.print(sensorA.temperature);
-    client.print("<br>Error Count: ");
-    client.println(sensorA.errorCount);
-    client.print("<br>Read Count: ");
-    client.println(sensorA.readCount);
-    client.println("<br>");
+    client.print(sensors.temperatureA);
     client.print("<br>Temp B: ");
-    client.println(sensorB.temperature);
+    client.println(sensors.temperatureB);
+    client.println("<br>");
     client.print("<br>Error Count: ");
-    client.println(sensorB.errorCount);
+    client.println(sensors.errorCount);
     client.print("<br>Read Count: ");
-    client.println(sensorB.readCount);
+    client.println(sensors.readCount);
     client.println("<br>");
     client.print("<br>Duty Cycle: ");
     client.println(fan.dutyCycle);
