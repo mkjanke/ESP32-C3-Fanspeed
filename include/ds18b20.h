@@ -13,7 +13,8 @@ static Placeholder<OneWireNg_CurrentPlatform> _ow;
 // so that the fans will spin in an attempt to lower that temp.
 // Temperature B is the base (ambient) temperature sensor, presumed to be lower temperature
 // 
-// Will find the first two DS sensor on a single OneWire bus.
+// Will find the first two DS sensor on a single OneWire bus. 
+// More than two sensor == untested.
 
 class sensorPair {
   
@@ -26,14 +27,16 @@ class sensorPair {
       _pin = pin;
     };
     
+    // Temperatures will be in either fahrenheit or celsius, depending on last read. 
     float temperatureA = 0.0;
     float temperatureB = 0.0;
 
-    int readCount = 0; 
-    int errorCount = 0;
-
+    // Flags will be set to whichever scale was read last
     bool isCelsius;
     bool isFahrenheit;
+
+    int readCount = 0; 
+    int errorCount = 0;
 
     void begin() {      
       new (&_ow) OneWireNg_CurrentPlatform(_pin, false);
@@ -41,12 +44,12 @@ class sensorPair {
       drv.filterSupportedSlaves();
     }
 
-    bool readFahrenheit(){
+    bool readFahrenheit() {
       isFahrenheit = true;
       isCelsius = false;
       return readTemperature(TEMP_FAHRENHEIT);
     }
-    bool readCelsius(){
+    bool readCelsius() {
       isFahrenheit = false;
       isCelsius = true;
       return readTemperature(false);
@@ -57,6 +60,9 @@ class sensorPair {
       DSTherm drv(_ow);
       Placeholder<DSTherm::Scratchpad> _scrpd;
 
+      // Only handle two sensors. Behaivior iwth > 2 undifined.
+      // temperatures returned from driver are in degrees C * 1000, 
+      // stored in long integer 
       long tempT[2];
       uint8_t i = 0;
       
@@ -82,6 +88,10 @@ class sensorPair {
 
       if (!isnan(tempT[0]) && !isnan(tempT[1])) {
         readCount++;
+        if (fahrenheit) {
+          tempT[0] = (9.0*tempT[0]/5.0)+32000;
+          tempT[1] = (9.0*tempT[1]/5.0)+32000;
+        }
         if (tempT[0] > tempT[1] ) {
           temperatureA = (float)((tempT[0] + 50)/100)/10;
           temperatureB = (float)((tempT[1] + 50)/100)/10;
@@ -89,10 +99,7 @@ class sensorPair {
           temperatureA = (float)((tempT[1] + 50)/100)/10;
           temperatureB = (float)((tempT[0] + 50)/100)/10;
         }
-        if (fahrenheit){
-          temperatureA = (9.0*temperatureA/5.0)+32;
-          temperatureB = (9.0*temperatureB/5.0)+32;
-        }
+        
         return true;
       } 
       else 

@@ -2,7 +2,6 @@
 #define FAN_H
 
 #include "settings.h"
-#include <stdint.h>
 
 #include "esp32-hal-ledc.h"   // lcdSetup()
 #include "driver/gpio.h"      // gpio functions
@@ -22,7 +21,7 @@ class PWMFan {
       ledcSetup(PWM_CHANNEL, PWM_FREQUENCY, PWM_RESOLUTION);
       ledcAttachPin(PWM_PIN, PWM_CHANNEL);
       
-      // Relay output
+      // Set relay to default
       gpio_set_direction((gpio_num_t)RELAY_OUT, GPIO_MODE_OUTPUT);
 
     }
@@ -33,7 +32,6 @@ class PWMFan {
       //              'B' is lower sensor, below coils, presumed to be ambient temperature
       //
       // Fan speed will be proportional to difference between A and B, bounded by HIGH and LOW limits
-      // 
 
       // Sanity checks
       if (override)
@@ -47,6 +45,7 @@ class PWMFan {
           maxTemp = FAN_MAX_TEMP;
         }
         
+        // Calc fan speed
         if ((dhtTempA < startTemp) || (dhtTempA <= dhtTempB))
           fanSpeed = 0;
         else if (dhtTempA > maxTemp)
@@ -57,10 +56,11 @@ class PWMFan {
           fanSpeed = (a * b) < FAN_LOW_SPEED ? 0 : (a * b);
         }
       }
+      // Set PWM channel pulse width
       dutyCycle = map(fanSpeed, 0, FAN_MAX_SPEED, 0, PWM_MAX_DUTY_CYCLE);
       ledcWrite(PWM_CHANNEL, dutyCycle);
 
-      // digitalWrite(RELAY_OUT, relayOut);
+      // And set relay based on setting of Bluetooth Characteristic
       gpio_set_level((gpio_num_t)RELAY_OUT, relayOut);
 
     }
