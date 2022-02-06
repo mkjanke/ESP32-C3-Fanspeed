@@ -1,15 +1,17 @@
-#ifndef BLESERVER_H
-#define BLESERVER_H
+#ifndef BLEINTERFACE_H
+#define BLEINTERFACE_H
 
 class bleInterface {
-  public:
-    void begin();
-    void updateFan();
-    void updateUptime();
-    void updateTemperature(float, float);
-    void stopAdvertising();
+ public:
+  static bool deviceConnected;
+
+  void begin();
+  void updateFan();
+  void updateUptime(char *);
+  void updateTemperature(float, float);
+  void stopAdvertising();
 };
 
 extern bool deviceConnected;
 
-#endif //BLESERVER_H
+#endif  // BLEINTERFACE_H
