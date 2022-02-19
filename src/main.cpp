@@ -30,6 +30,9 @@ void outputWebPage(WiFiClient);
 
 WiFiServer server(80);
 
+TaskHandle_t xcheckWiFiHandle = NULL;
+TaskHandle_t xreadSensorsHandle = NULL;
+
 void setup() {
   Serial.begin(115200);
   Serial.println("This device is Woke!");
@@ -64,21 +67,8 @@ void setup() {
   dumpESPStatus();
 
   // Background tasks, WiFi and Temperature Read
-  xTaskCreate(checkWiFi,     // Function that should be called
-              "Check WiFi",  // Name of the task (for debugging)
-              1000,          // Stack size (bytes)
-              NULL,          // Parameter to pass
-              1,             // Task priority
-              NULL           // Task handle
-  );
-
-  xTaskCreate(readSensors,     // Function that should be called
-              "Read Sensors",  // Name of the task (for debugging)
-              2000,            // Stack size (bytes)
-              NULL,            // Parameter to pass
-              6,               // Task priority
-              NULL             // Task handle
-  );
+  xTaskCreate(checkWiFi, "Check WiFi", 1500, NULL, 1, &xcheckWiFiHandle);
+  xTaskCreate(readSensors, "Read Sensors", 2500, NULL, 6, &xreadSensorsHandle);
 
   // Initialize OTA Update libraries
   ArduinoOTA.setHostname(DEVICE_NAME);
@@ -147,6 +137,7 @@ void readSensors(void* parameter) {
 
     vTaskDelay(HEARTBEAT * 2 / portTICK_PERIOD_MS);
     digitalWrite(LED_OUT, HIGH);
+
     if (sensors.readFahrenheit()) {
       fan.setFanSpeed((int)sensors.temperatureA, (int)sensors.temperatureB);
       bleIF.updateTemperature(sensors.temperatureB, sensors.temperatureB);
@@ -194,9 +185,7 @@ void outputWebPage(WiFiClient client) {
     client.println("HTTP/1.1 200 OK");
     client.println("Content-Type: text/html");
     client.println("");  //  Important.
-    client.println("<!DOCTYPE HTML>");
-    client.println("<html>");
-    client.println("<head><meta charset=utf-8></head>");
+    client.println("<!DOCTYPE HTML><html><head><meta charset=utf-8></head>");
     client.println("<body><font face='Arial'>");
     client.print("<h1>");
     client.print(DEVICE_NAME);
@@ -227,6 +216,14 @@ void outputWebPage(WiFiClient client) {
     client.println(fan.override);
     client.print("<br>Relay: ");
     client.println(fan.relayOut);
+
+    client.print("<br>HW Wifi Task: ");
+    client.println(uxTaskGetStackHighWaterMark(xcheckWiFiHandle));
+    client.print("<br>HW Sensor: ");
+    client.println(uxTaskGetStackHighWaterMark(xreadSensorsHandle));
+    client.print("<br>Heap: ");
+    client.println(esp_get_minimum_free_heap_size());
+
     client.println("");
     client.println("<br><br>");
     client.println("</font></center></body></html>");

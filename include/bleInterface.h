@@ -12,6 +12,4 @@ class bleInterface {
   void stopAdvertising();
 };
 
-extern bool deviceConnected;
-
 #endif  // BLEINTERFACE_H
