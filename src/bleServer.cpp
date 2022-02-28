@@ -94,14 +94,14 @@ void bleInterface::begin() {
 
   // Temperature Characteristics
   temperatureA_BLEC = pService->createCharacteristic(
-      TEMPERATURE_UUID, NIMBLE_PROPERTY::READ | NIMBLE_PROPERTY::NOTIFY);
+      TEMPERATURE_A_UUID, NIMBLE_PROPERTY::READ | NIMBLE_PROPERTY::NOTIFY);
   NimBLEDescriptor* temperatureA_BLEDesc;
   temperatureA_BLEDesc =
       temperatureA_BLEC->createDescriptor("2901", NIMBLE_PROPERTY::READ, 25);
   temperatureA_BLEDesc->setValue("Sensor A Temp");
 
   temperatureB_BLEC = pService->createCharacteristic(
-      HUMIDITY_UUID, NIMBLE_PROPERTY::READ | NIMBLE_PROPERTY::NOTIFY);
+      TEMPERATURE_B_UUID, NIMBLE_PROPERTY::READ | NIMBLE_PROPERTY::NOTIFY);
   NimBLEDescriptor* temperatureB_BLEDesc;
   temperatureB_BLEDesc =
       temperatureB_BLEC->createDescriptor("2901", NIMBLE_PROPERTY::READ, 25);

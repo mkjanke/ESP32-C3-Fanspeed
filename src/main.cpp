@@ -140,7 +140,7 @@ void readSensors(void* parameter) {
 
     if (sensors.readFahrenheit()) {
       fan.setFanSpeed((int)sensors.temperatureA, (int)sensors.temperatureB);
-      bleIF.updateTemperature(sensors.temperatureB, sensors.temperatureB);
+      bleIF.updateTemperature(sensors.temperatureA, sensors.temperatureB);
       bleIF.updateFan();
     }
 
