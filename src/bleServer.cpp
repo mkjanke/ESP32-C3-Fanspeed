@@ -22,7 +22,11 @@ BLECharacteristic* fanOverrideBLEC;
 BLECharacteristic* fanRelayBLEC;
 
 class MyServerCallbacks : public BLEServerCallbacks {
-  void onConnect(BLEServer* pServer) { bleInterface::deviceConnected = true; };
+  void onConnect(BLEServer* pServer) { 
+    bleInterface::deviceConnected = true; 
+    pAdvertising->start();
+    pAdvertising->setScanResponse(true);
+};
 
   void onDisconnect(BLEServer* pServer) {
     bleInterface::deviceConnected = false;
