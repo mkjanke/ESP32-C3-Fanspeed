@@ -9,6 +9,10 @@
 #define HEARTBEAT 10000L         // Sensor and WiFi loop delay (ms)
 #define DEVICE_NAME "ESP-Fanspeed"
 
+
+#define SYSLOG_HOST "192.168.1.7"
+#define SYSLOG_PORT 514
+
 // Default PWM parameters
 // Linear fan speed. I.E 75F to 90F will result in fan speed from 40% to 100% of max RPM
 // Overriden by BLE writes
@@ -65,5 +69,6 @@ static const uint8_t DS18B20{18};      /** DS18B20 type sensor */
 #define FANLOW_UUID          "611f9b02-3915-11ec-8d3d-0242ac130003"  // Fan speed - minimum PWM pulse width
 #define FANOVERRIDE_UUID     "611f9bb6-3915-11ec-8d3d-0242ac130003"  // Force fan speed to 100%
 #define RELAY_UUID           "611f9d00-3915-11ec-8d3d-0242ac130003"  // Fan Controller bypass relay
+#define STATUS_UUID          "6bcbf0ea-7fbb-11ec-a8a3-0242ac120002"  // String - Device Status messages
 
-#endif //SETTINS_H
+#endif //SETTINGS_H

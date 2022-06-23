@@ -1,6 +1,7 @@
 #ifndef DS18B20_H
 #define DS18B20_H
 
+#include "log.h"
 #include "OneWireNg_CurrentPlatform.h"
 #include "drivers/DSTherm.h"
 #include "utils/Placeholder.h"
@@ -61,48 +62,64 @@ class sensorPair {
     DSTherm drv(_ow);
     Placeholder<DSTherm::Scratchpad> _scrpd;
 
-    // Only handle two sensors. Behaivior iwth > 2 undifined.
+    // Only handles two sensors. Behavior with > 2 undifined.
     // temperatures returned from driver are in degrees C * 1000,
     // stored in long integer
     long tempT[2];
     uint8_t i = 0;
-
+    
     /* convert temperature on all sensors connected... */
-    drv.convertTempAll(DSTherm::SCAN_BUS, PARASITE_POWER);
+    // convertTempAll Returns EC_SUCCESS even if no devices<??>
 
-    /* ...and read them one-by-one */
-    for (const auto& id : (OneWireNg&)_ow) {
-      if (printId(id)) {
-        if (drv.readScratchpad(id, &_scrpd) == OneWireNg::EC_SUCCESS) {
-          printScratchpad(_scrpd);
-          tempT[i] = _scrpd.operator&()->getTemp();
-          i++;
-        } else {
-          Serial.println("  Invalid CRC!");
+    if (drv.convertTempAll(DSTherm::SCAN_BUS, PARASITE_POWER) == OneWireNg::EC_SUCCESS) {
+    
+      /* ...and read them one-by-one */
+      for (const auto& id : (OneWireNg&)_ow) {
+        if (printId(id)) {
+          if (drv.readScratchpad(id, &_scrpd) == OneWireNg::EC_SUCCESS) {
+            printScratchpad(_scrpd);
+            tempT[i] = _scrpd.operator&()->getTemp();
+            i++;
+          } else {
+            sLog.send("Invalid CRC", true);
+            errorCount++;
+            return false;
+          }
+        }
+        else {
+          sLog.send("Invalid Device", true);
           errorCount++;
           return false;
         }
       }
-    }
-    Serial.println("----------");
+      Serial.println("----------");
 
-    if (!isnan(tempT[0]) && !isnan(tempT[1])) {
-      readCount++;
-      if (fahrenheit) {
-        tempT[0] = (9.0 * tempT[0] / 5.0) + 32000;
-        tempT[1] = (9.0 * tempT[1] / 5.0) + 32000;
+      if ( (i > 0) && !isnan(tempT[0]) && !isnan(tempT[1])) {
+        readCount++;
+        if (fahrenheit) {
+          tempT[0] = (9.0 * tempT[0] / 5.0) + 32000;
+          tempT[1] = (9.0 * tempT[1] / 5.0) + 32000;
+        }
+        if (tempT[0] > tempT[1]) {
+          temperatureA = (float)((tempT[0] + 50) / 100) / 10;
+          temperatureB = (float)((tempT[1] + 50) / 100) / 10;
+        } else {
+          temperatureA = (float)((tempT[1] + 50) / 100) / 10;
+          temperatureB = (float)((tempT[0] + 50) / 100) / 10;
+        }
+        return true;
       }
-      if (tempT[0] > tempT[1]) {
-        temperatureA = (float)((tempT[0] + 50) / 100) / 10;
-        temperatureB = (float)((tempT[1] + 50) / 100) / 10;
-      } else {
-        temperatureA = (float)((tempT[1] + 50) / 100) / 10;
-        temperatureB = (float)((tempT[0] + 50) / 100) / 10;
+      else{
+        sLog.send("No devices or NaN", true);
+        errorCount++;
+        return false;
       }
-
-      return true;
-    } else
+    } 
+    else { 
+      sLog.send("Invalid Read", true);
+      errorCount++;
       return false;
+    }
   }
 
   static bool printId(const OneWireNg::Id& id) {

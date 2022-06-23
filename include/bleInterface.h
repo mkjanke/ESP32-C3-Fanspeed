@@ -8,6 +8,7 @@ class bleInterface {
   void begin();
   void updateFan();
   void updateUptime(char *);
+  void updateStatus(const char *);
   void updateTemperature(float, float);
   void stopAdvertising();
 };

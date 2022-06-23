@@ -10,6 +10,8 @@
 #include "freertos/task.h"
 #include "sensor.h"
 #include "settings.h"
+#include "log.h"
+
 
 const char* ssid = WIFI_SSID;
 const char* password = WIFI_PASSWORD;
@@ -45,11 +47,14 @@ void setup() {
   WiFi.begin(ssid, password);
   WiFi.setHostname(DEVICE_NAME);
 
+  sLog.init();
+
+  // Initialize BlueTooth
+  bleIF.begin();
+
   // Start web server
   server.begin();
-  Serial.println("Web Server started.");
-  Serial.print("http://");
-  Serial.println(WiFi.localIP());
+  sLog.send((String)"Web Server started at http://" + WiFi.localIP().toString(), true);
 
   // Initialize fan and temperature sensors
   fan.begin();
@@ -59,21 +64,20 @@ void setup() {
 
   uptime();
 
-  // Initialize BlueTooth
-  bleIF.begin();
   bleIF.updateUptime(uptimeBuffer);
   bleIF.updateFan();
 
   dumpESPStatus();
 
   // Background tasks, WiFi and Temperature Read
-  xTaskCreate(checkWiFi, "Check WiFi", 1500, NULL, 1, &xcheckWiFiHandle);
+  xTaskCreate(checkWiFi, "Check WiFi", 3000, NULL, 1, &xcheckWiFiHandle);
   xTaskCreate(readSensors, "Read Sensors", 2500, NULL, 6, &xreadSensorsHandle);
 
   // Initialize OTA Update libraries
   ArduinoOTA.setHostname(DEVICE_NAME);
   ArduinoOTA.onStart([]() { bleIF.stopAdvertising(); });
   ArduinoOTA.begin();
+  sLog.send((String)DEVICE_NAME + " is Woke", true);
 }
 
 void loop() {
@@ -118,12 +122,16 @@ void uptime() {
 }
 
 void checkWiFi(void* parameter) {
+  String status;
+  status.reserve(40);
   for (;;) {  // infinite loop
     vTaskDelay(HEARTBEAT * 4 / portTICK_PERIOD_MS);
     if (WiFi.status() == WL_CONNECTED) {
-      Serial.println(WiFi.localIP());
+      status=(String)"IP:" + WiFi.localIP().toString() + " DNS:" + WiFi.dnsIP().toString();
+      bleIF.updateStatus(status.c_str());
     } else {
       vTaskDelay(HEARTBEAT * 4 / portTICK_PERIOD_MS);
+      bleIF.updateStatus("WiFi not connected");
       WiFi.reconnect();  // Try to reconnect to the server
     }
   }
@@ -133,15 +141,24 @@ void checkWiFi(void* parameter) {
 // Update BlueTooth characteristics
 // Set fan speed
 void readSensors(void* parameter) {
+  String status = "";
+  status.reserve(28);
+
   for (;;) {  // infinite loop
 
     vTaskDelay(HEARTBEAT * 2 / portTICK_PERIOD_MS);
     digitalWrite(LED_OUT, HIGH);
 
     if (sensors.readFahrenheit()) {
+      status = "Read A: " + String(sensors.temperatureA, 1) + ", B: " + String(sensors.temperatureB, 1);
+      bleIF.updateStatus(status.c_str());
+      sLog.send(status.c_str());
       fan.setFanSpeed((int)sensors.temperatureA, (int)sensors.temperatureB);
       bleIF.updateTemperature(sensors.temperatureA, sensors.temperatureB);
       bleIF.updateFan();
+    }
+    else {
+      bleIF.updateStatus("read failed");
     }
 
     digitalWrite(LED_OUT, LOW);

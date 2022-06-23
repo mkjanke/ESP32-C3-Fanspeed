@@ -14,6 +14,7 @@ BLEAdvertising* pAdvertising;
 BLECharacteristic* temperatureA_BLEC;
 BLECharacteristic* temperatureB_BLEC;
 BLECharacteristic* uptimeBLEC;
+BLECharacteristic* statusBLEC;
 BLECharacteristic* fanspeedBLEC;
 BLECharacteristic* fanStartTempBLEC;
 BLECharacteristic* fanMaxTempBLEC;
@@ -78,6 +79,12 @@ void bleInterface::updateUptime(char* buff) {
   uptimeBLEC->notify();
 }
 
+// Device Status
+void bleInterface::updateStatus(const char* buff) {
+  statusBLEC->setValue((std::string)buff);
+  statusBLEC->notify();
+}
+
 void bleInterface::stopAdvertising() {
   pAdvertising->stop();
   pAdvertising->setScanResponse(false);
@@ -118,6 +125,15 @@ void bleInterface::begin() {
   uptimeBLEDesc =
       uptimeBLEC->createDescriptor("2901", NIMBLE_PROPERTY::READ, 25);
   uptimeBLEDesc->setValue("Device Uptime");
+
+  // Characteristic to hold misc ESP32 Status messages
+  statusBLEC = pService->createCharacteristic(
+      STATUS_UUID, NIMBLE_PROPERTY::READ | NIMBLE_PROPERTY::NOTIFY);
+  NimBLEDescriptor* statusBLEDesc;
+  statusBLEDesc =
+      statusBLEC->createDescriptor("2901", NIMBLE_PROPERTY::READ, 25);
+  statusBLEDesc->setValue("Device Status");
+
 
   // Fan Speed
   fanspeedBLEC = pService->createCharacteristic(
@@ -179,6 +195,8 @@ void bleInterface::begin() {
 
   pService->start();
   pAdvertising = pServer->getAdvertising();
+  pAdvertising->addServiceUUID(SERVICE_UUID); 
+
   pAdvertising->start();
   pAdvertising->setScanResponse(true);
 }
