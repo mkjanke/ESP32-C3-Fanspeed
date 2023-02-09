@@ -13,6 +13,8 @@ Inspiration and sample code from Everlanders:
       https://youtu.be/aS3BiYaEfiw
       https://youtu.be/KX67lBrizPg
 
+### A stripped-down verion using ESP-NOW instead of BLE is here: https://github.com/mkjanke/ESP32-Fanspeed-NOW
+
 ## Libraries:
     Arduino OTA
     Adafruit DHT Sensor Library (DHT11 version)
